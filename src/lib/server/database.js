@@ -2,6 +2,9 @@
 // rather than in memory. But for now, we cheat.
 const db = new Map();
 
+/**
+ * @param {any} userid
+ */
 export function getTodos(userid) {
 	if (!db.get(userid)) {
 		db.set(userid, [
@@ -16,8 +19,20 @@ export function getTodos(userid) {
 	return db.get(userid);
 }
 
+/**
+ * @param {{ userid: any; description: any; }} userid
+ * @param {string | undefined} [description]
+ */
 export function createTodo(userid, description) {
+	if (description === '') {
+		throw new Error('todo must have a description');
+	}
+
 	const todos = db.get(userid);
+
+	if (todos.find((/** @type {{ description: any; }} */ todo) => todo.description === description)) {
+		throw new Error('todos must be unique');
+	}
 
 	todos.push({
 		id: crypto.randomUUID(),
@@ -26,9 +41,13 @@ export function createTodo(userid, description) {
 	});
 }
 
+/**
+ * @param {any} userid
+ * @param {any} todoid
+ */
 export function deleteTodo(userid, todoid) {
 	const todos = db.get(userid);
-	const index = todos.findIndex((todo) => todo.id === todoid);
+	const index = todos.findIndex((/** @type {{ id: any; }} */ todo) => todo.id === todoid);
 
 	if (index !== -1) {
 		todos.splice(index, 1);
